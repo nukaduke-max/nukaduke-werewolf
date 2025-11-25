@@ -33,6 +33,9 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // DOM取得
+const loginSection = document.getElementById("loginSection");
+const roomSection = document.getElementById("roomSection");
+
 const nameInput = document.getElementById("nameInput");
 const passwordInput = document.getElementById("passwordInput");
 const joinBtn = document.getElementById("joinBtn");
@@ -52,6 +55,7 @@ if (savedName) nameInput.value = savedName;
 
 // ===== プレイヤー一覧 =====
 function startPlayersListener() {
+  if (unsubscribePlayers) return; // 二重に張らない
   const playersRef = collection(db, "rooms", ROOM_ID, "players");
   const q = query(playersRef, orderBy("joinedAt", "asc"));
 
@@ -80,6 +84,7 @@ function startPlayersListener() {
 
 // ===== チャット一覧 =====
 function startChatListener() {
+  if (unsubscribeChat) return; // 二重に張らない
   const msgsRef = collection(db, "rooms", ROOM_ID, "messages");
   const q = query(msgsRef, orderBy("createdAt", "asc"));
 
@@ -147,7 +152,7 @@ joinBtn.addEventListener("click", async () => {
   statusEl.textContent = `部屋「${ROOM_ID}」に ${name} として入っています`;
   sendBtn.disabled = false;
 
-  // プレイヤー一覧へ自分を追加（シンプルに毎回1行追加する方式）
+  // プレイヤー一覧へ自分を追加
   try {
     const playersRef = collection(db, "rooms", ROOM_ID, "players");
     await addDoc(playersRef, {
@@ -159,9 +164,13 @@ joinBtn.addEventListener("click", async () => {
     // 失敗しても致命的じゃないので画面には出さない
   }
 
-  // リスナー開始（まだなら）
-  if (!unsubscribeChat) startChatListener();
-  if (!unsubscribePlayers) startPlayersListener();
+  // ここで画面を「入室後モード」に切り替え
+  loginSection.style.display = "none";
+  roomSection.style.display = "block";
+
+  // リスナー開始
+  startChatListener();
+  startPlayersListener();
 });
 
 // ===== メッセージ送信 =====
@@ -191,7 +200,3 @@ sendBtn.addEventListener("click", async () => {
     sendBtn.disabled = false;
   }
 });
-
-// ページを開いた時点で一覧リスナーだけ開始（部屋はロックされてる）
-startChatListener();
-startPlayersListener();
