@@ -1,5 +1,4 @@
 // main.js
-// Firebase と Firestore をCDNから読み込む
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
 import {
   getFirestore,
@@ -12,9 +11,9 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
 // ★ 部屋は1つだけ：固定ID
-const ROOM_ID = "main"; // 好きな文字列に変えてOK
+const ROOM_ID = "main";
 
-// ★ この部屋のパスワード（ここを好きに変えてOK）
+// ★ この部屋のパスワード（好きに変えてOK）
 const ROOM_PASSWORD = "werewolf123";
 
 // あなたの firebaseConfig
@@ -28,7 +27,6 @@ const firebaseConfig = {
   measurementId: "G-Q7LBVYBN3Z"
 };
 
-// Firebase初期化
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
@@ -49,13 +47,17 @@ let currentName = null;
 let unsubscribeChat = null;
 let unsubscribePlayers = null;
 
+// 念のため初期表示を強制
+if (loginSection) loginSection.style.display = "block";
+if (roomSection) roomSection.style.display = "none";
+
 // 前回の名前を復元
 const savedName = localStorage.getItem("name");
 if (savedName) nameInput.value = savedName;
 
-// ===== プレイヤー一覧 =====
+// プレイヤー一覧
 function startPlayersListener() {
-  if (unsubscribePlayers) return; // 二重に張らない
+  if (unsubscribePlayers) return;
   const playersRef = collection(db, "rooms", ROOM_ID, "players");
   const q = query(playersRef, orderBy("joinedAt", "asc"));
 
@@ -82,9 +84,9 @@ function startPlayersListener() {
   );
 }
 
-// ===== チャット一覧 =====
+// チャット一覧
 function startChatListener() {
-  if (unsubscribeChat) return; // 二重に張らない
+  if (unsubscribeChat) return;
   const msgsRef = collection(db, "rooms", ROOM_ID, "messages");
   const q = query(msgsRef, orderBy("createdAt", "asc"));
 
@@ -128,7 +130,7 @@ function startChatListener() {
   );
 }
 
-// ===== 部屋に入る =====
+// 部屋に入る
 joinBtn.addEventListener("click", async () => {
   const name = nameInput.value.trim();
   const pwd = passwordInput.value.trim();
@@ -152,7 +154,6 @@ joinBtn.addEventListener("click", async () => {
   statusEl.textContent = `部屋「${ROOM_ID}」に ${name} として入っています`;
   sendBtn.disabled = false;
 
-  // プレイヤー一覧へ自分を追加
   try {
     const playersRef = collection(db, "rooms", ROOM_ID, "players");
     await addDoc(playersRef, {
@@ -161,19 +162,17 @@ joinBtn.addEventListener("click", async () => {
     });
   } catch (e) {
     console.error(e);
-    // 失敗しても致命的じゃないので画面には出さない
   }
 
-  // ここで画面を「入室後モード」に切り替え
-  loginSection.style.display = "none";
-  roomSection.style.display = "block";
+  // ここで表示切り替え
+  if (loginSection) loginSection.style.display = "none";
+  if (roomSection) roomSection.style.display = "block";
 
-  // リスナー開始
   startChatListener();
   startPlayersListener();
 });
 
-// ===== メッセージ送信 =====
+// メッセージ送信
 sendBtn.addEventListener("click", async () => {
   if (!currentName) {
     alert("先に部屋に入ってください");
