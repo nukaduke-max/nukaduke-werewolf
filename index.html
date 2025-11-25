@@ -90,7 +90,8 @@
 <body>
   <h1>Werewolf ミニチャット（1部屋）</h1>
 
-  <div class="card">
+  <!-- 入室前にだけ見せるエリア -->
+  <div id="loginSection" class="card">
     <label>名前</label>
     <input id="nameInput" placeholder="名前を入力" />
 
@@ -99,19 +100,22 @@
 
     <button id="joinBtn">部屋に入る</button>
     <div id="status">まだ部屋に入っていません。</div>
+  </div>
 
-    <div style="margin-top:8px;">
+  <!-- 入室後だけ見せるエリア -->
+  <div id="roomSection" style="display:none;">
+    <div class="card">
       <strong>部屋のプレイヤー</strong>
       <div id="playersList">まだ誰もいません。</div>
     </div>
-  </div>
 
-  <div class="card">
-    <label>メッセージ</label>
-    <textarea id="messageInput" rows="2" placeholder="メッセージを入力"></textarea>
-    <button id="sendBtn" disabled>送信</button>
+    <div class="card">
+      <label>メッセージ</label>
+      <textarea id="messageInput" rows="2" placeholder="メッセージを入力"></textarea>
+      <button id="sendBtn" disabled>送信</button>
 
-    <div id="chat"></div>
+      <div id="chat"></div>
+    </div>
   </div>
 
   <!-- メインのJS -->
